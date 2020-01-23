@@ -28,8 +28,6 @@ int count = 0;
 //Definition
 void GetPayloadPose(const nav_msgs::Odometry::ConstPtr& payloadmsg, const nav_msgs::Odometry::ConstPtr& uavmsg)
 {
-
-    
     nav_msgs::Odometry payload_msg = *payloadmsg;
     nav_msgs::Odometry uav_msg = *uavmsg;
     

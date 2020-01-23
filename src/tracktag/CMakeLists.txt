@@ -86,6 +86,12 @@ ${EIGEN3_LIBS}
 
 # Build examples
 
+add_executable(april_tag_opencv_emulate
+opencv_emulate.cc)
+target_link_libraries(april_tag_opencv_emulate
+${PROJECT_NAME}
+${catkin_LIBRARIES})
+
 
 add_executable(april_tag_opencv
 opencv_apriltag.cc)
@@ -98,6 +104,7 @@ filter_pose.cc
 filter.h
 filter.cc
 )
+
 target_link_libraries(pose_filter
 ${PROJECT_NAME}
 ${catkin_LIBRARIES}
