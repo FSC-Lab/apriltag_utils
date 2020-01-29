@@ -30,24 +30,22 @@ LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
 
 find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    sensor_msgs
-    cv_bridge
-    image_transport
-    geometry_msgs
-    nav_msgs
-    )
-
+roscpp
+sensor_msgs
+cv_bridge
+image_transport
+geometry_msgs
+nav_msgs
+)
 
 find_package(Eigen3 REQUIRED)
+
 find_package(OpenCV 3.0 QUIET)
 if(NOT OpenCV_FOUND)
    message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
 endif()
 
 find_package(apriltag REQUIRED)
-
-
 
 
 include_directories(
@@ -59,22 +57,23 @@ ${EIGEN3_INCLUDE_DIRS}
 )
 
 catkin_package(
-    LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS
-    roscpp 
-    sensor_msgs 
-    std_msgs
-    geometry_msgs
-    cv_bridge
-    image_transport
-    nav_msgs
-    )
+LIBRARIES ${PROJECT_NAME}
+CATKIN_DEPENDS
+roscpp 
+sensor_msgs 
+std_msgs
+geometry_msgs
+cv_bridge
+image_transport
+nav_msgs
+)
 
 
 add_library(${PROJECT_NAME} SHARED
 ${apriltag_LIBRARIES}
-opencv_apriltag.cc
+src/apriltag_detector.cpp
 )
+
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}
 ${OpenCV_LIBS}
@@ -84,26 +83,31 @@ ${EIGEN3_LIBS}
 /usr/local/lib/libapriltag.so.3.1.0
 )
 
-# Build examples
-
-add_executable(april_tag_opencv_emulate
-opencv_emulate.cc)
+##############################################################################
+# Sources for apriltag emulator
+##############################################################################
+file(GLOB_RECURSE EMULATOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*emulator.cpp)
+add_executable(april_tag_opencv_emulate ${EMULATOR_SOURCES})
 target_link_libraries(april_tag_opencv_emulate
 ${PROJECT_NAME}
 ${catkin_LIBRARIES})
 
+##############################################################################
+# Sources for apriltag detector
+##############################################################################
+file(GLOB_RECURSE DETECTOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*detector.cpp)
 
-add_executable(april_tag_opencv
-opencv_apriltag.cc)
+add_executable(april_tag_opencv ${DETECTOR_SOURCES})
 target_link_libraries(april_tag_opencv 
 ${PROJECT_NAME}
 ${catkin_LIBRARIES})
 
-add_executable(pose_filter
-filter_pose.cc
-filter.h
-filter.cc
-)
+##############################################################################
+# Sources for Kalman Filter
+##############################################################################
+file(GLOB_RECURSE FILTER_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*filter.cpp)
+
+add_executable(pose_filter ${FILTER_SOURCES})
 
 target_link_libraries(pose_filter
 ${PROJECT_NAME}
@@ -112,6 +116,4 @@ ${apriltag_LIBRARIES}
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
 )
-
-
 

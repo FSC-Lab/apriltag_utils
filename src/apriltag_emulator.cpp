@@ -13,6 +13,12 @@
 #include <eigen3/Eigen/Geometry>
 #include "common.hpp"
 
+#include "../include/math/Quat.h"
+#include "../include/math/Vec.h"
+#include "../include/math/Tform.h"
+
+#define TFORM_USE 1
+
 //Declaration
 void GetPayloadPose(const nav_msgs::Odometry::ConstPtr &payloadmsg, const nav_msgs::Odometry::ConstPtr &uavmsg);
 void FlagDetect(const std_msgs::String::ConstPtr &msg);
@@ -31,15 +37,25 @@ void GetPayloadPose(const nav_msgs::Odometry::ConstPtr &payloadmsg, const nav_ms
     nav_msgs::Odometry uav_msg = *uavmsg;
 
     double payload_time;
+#if TFORM_USE
+    Tform T_p_c(payload_msg.pose.pose);
 
+    // std::cout << "=========================" << std::endl;
+    std::cout << T_p_c << "\r" << std::endl;
+    // std::cout << Quat(payload_msg.pose.pose.orientation).coeffs_wxyz() << "\r" << std::endl;
+
+
+#else
     //obtain payload state
+    // REWRITE NOTE: 
     Quat q_payload(payload_msg.pose.pose.orientation);
-    Eigen::Matrix3d payload_R = q_payload.toRotationMatrix();
-    Eigen::Vector3d payload_t;
-    payload_t << payload_msg.pose.pose.position.x, payload_msg.pose.pose.position.y, payload_msg.pose.pose.position.z;
-    Eigen::Matrix4d payload_T = Eigen::MatrixXd::Identity(4, 4);
-    payload_T.block<3, 3>(0, 0) = payload_R;
-    payload_T.block<3, 1>(0, 3) = payload_t;
+    Eigen::Matrix3d C_p_c = q_payload.toRotationMatrix();
+    Eigen::Vector3d r_p_c;
+    r_p_c << payload_msg.pose.pose.position.x, payload_msg.pose.pose.position.y, payload_msg.pose.pose.position.z;
+    Eigen::Matrix4d T_p_c = Eigen::MatrixXd::Identity(4, 4);
+    T_p_c.block<3, 3>(0, 0) = C_p_c;
+    T_p_c.block<3, 1>(0, 3) = r_p_c;
+#endif
 
     //obtain UAV state
     Quat q_uav(uav_msg.pose.pose.orientation);
@@ -53,7 +69,7 @@ void GetPayloadPose(const nav_msgs::Odometry::ConstPtr &payloadmsg, const nav_ms
     //obtain relative pose
     payload_time = payload_msg.header.stamp.toSec();
     Eigen::Matrix4d relative_T;
-    relative_T = uav_T.inverse() * payload_T;
+    relative_T = uav_T.inverse() * T_p_c;
     relativeposedata.push_back(std::make_pair(payload_time, relative_T));
 
     if (sizeof(relativeposedata) > 10)

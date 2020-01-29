@@ -6,9 +6,6 @@
 #include "nav_msgs/Odometry.h"
 #include <geometry_msgs/PoseStamped.h>
 
-
-
-
 int main(int argc , char** argv)
 {
     ros::init(argc,argv,"pose_filter");
@@ -18,11 +15,9 @@ int main(int argc , char** argv)
 
     ros::Rate loop_rate(100); 
 
-
-
     ros::NodeHandle nh;
     ros::Subscriber pose_sub = nh.subscribe("rpicamerav2/apriltag/pose",10,&cv_filter::receivedata,&apriltag_filter);
-    ros::Publisher pose_publisher = nh.advertise<nav_msgs::Odometry>("/uav2/px4_command/visualmeasurement",10);
+    ros::Publisher pose_publisher = nh.advertise<nav_msgs::Odometry>("/uav2/px4_command/visualmeasurement", 10);
 
     while (ros::ok())
     {

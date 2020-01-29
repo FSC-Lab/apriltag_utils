@@ -5,11 +5,12 @@
   <description>rpi camera yc</description>
   <maintainer email="cheng.yuan@flight.utias.utoronto.ca">Sergey Dorodnicov</maintainer>
   <license>Apache 2.0</license>
-  
+
 
   <author email="sergey.dorodnicov@intel.com">Sergey Dorodnicov</author>
   <author email="doron.hirshberg@intel.com">Doron Hirshberg</author>
   <buildtool_depend>catkin</buildtool_depend>
+  <depend>eigen_conversions</depend>
   <depend>image_transport</depend>
   <depend>cv_bridge</depend>
   <depend>roscpp</depend>
