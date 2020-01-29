@@ -5,7 +5,7 @@
 #include "Vec.h"
 #include "Quat.h"
 
-class Tform : public Eigen::Quaterniond, public Eigen::Matrix4d
+class Tform : public Eigen::Matrix4d
 {
 public:
     template <typename Derived>
@@ -32,14 +32,14 @@ public:
     Tform(const geometry_msgs::Pose &pose)
     {
         this->block<3, 1>(0, 3) = Vec(pose.position);
-        this->block<3, 3>(0, 0) = Quat(pose.orientation).toDCM();
+        this->block<3, 3>(0, 0) = Quat(pose.orientation).toRotationMatrix();
         this->block<1, 4>(3, 0) << 0, 0, 0, 1;
     }
 
     Tform(const Vector3d vec, const Quaterniond &quat)
     {
         this->block<3, 1>(0, 3) = vec;
-        this->block<3, 3>(0, 0) = Quat(quat).toDCM();
+        this->block<3, 3>(0, 0) = Quat(quat).toRotationMatrix();
         this->block<1, 4>(3, 0) << 0, 0, 0, 1;
     }
 
@@ -50,9 +50,18 @@ public:
         return *this;
     }
 
-    inline Matrix3d DCM(void) { return this->block<3, 3>(0, 0); }
+    inline Tform inverse(void)
+    {
+        Tform inv;
+        inv.block<3, 1>(0, 3) = -this->rotation().transpose()*this->translation();
+        inv.block<3, 3>(0, 0) = this->rotation().transpose();
+        inv.block<1, 4>(3, 0) << 0, 0, 0, 1;
+        return inv;
+    }
 
-    inline Vector3d disp(void) { return this->block<3, 1>(0, 3); }
+    inline Matrix3d rotation(void) { return this->block<3, 3>(0, 0); }
+
+    inline Vector3d translation(void) { return this->block<3, 1>(0, 3); }
 
     geometry_msgs::Pose toMsgsPose(void)
     {

@@ -25,7 +25,7 @@ void FlagDetect(const std_msgs::String::ConstPtr &msg);
 void initros();
 bool Loss_Flag = 1;
 bool pub_flag = 0;
-std::vector<std::pair<double, Eigen::Matrix4d>> relativeposedata;
+std::vector<std::pair<double, Tform>> T_pk_vk;
 Eigen::Vector3d CalculateVelocityFromPose();
 nav_msgs::Odometry pose_msg;
 int count = 0;
@@ -38,57 +38,54 @@ void GetPayloadPose(const nav_msgs::Odometry::ConstPtr &payloadmsg, const nav_ms
 
     double payload_time;
 #if TFORM_USE
-    Tform T_p_c(payload_msg.pose.pose);
-
-    // std::cout << "=========================" << std::endl;
-    std::cout << T_p_c << "\r" << std::endl;
-    // std::cout << Quat(payload_msg.pose.pose.orientation).coeffs_wxyz() << "\r" << std::endl;
-
+    Tform T_p_i(payload_msg.pose.pose);
+    Tform T_v_i(uav_msg.pose.pose);
 
 #else
     //obtain payload state
-    // REWRITE NOTE: 
+    // REWRITE NOTE:
     Quat q_payload(payload_msg.pose.pose.orientation);
     Eigen::Matrix3d C_p_c = q_payload.toRotationMatrix();
     Eigen::Vector3d r_p_c;
     r_p_c << payload_msg.pose.pose.position.x, payload_msg.pose.pose.position.y, payload_msg.pose.pose.position.z;
-    Eigen::Matrix4d T_p_c = Eigen::MatrixXd::Identity(4, 4);
-    T_p_c.block<3, 3>(0, 0) = C_p_c;
-    T_p_c.block<3, 1>(0, 3) = r_p_c;
-#endif
+    Eigen::Matrix4d T_p_i(= Eigen::MatrixXd::Identity(4, 4);
+    T_p_i(block<3, 3>(0, 0) = C_p_c;
+    T_p_i(block<3, 1>(0, 3) = r_p_c;
 
     //obtain UAV state
     Quat q_uav(uav_msg.pose.pose.orientation);
     Eigen::Matrix3d uav_R = q_uav.toRotationMatrix();
     Eigen::Vector3d uav_t;
     uav_t << uav_msg.pose.pose.position.x, uav_msg.pose.pose.position.y, uav_msg.pose.pose.position.z;
-    Eigen::Matrix4d uav_T = Eigen::MatrixXd::Identity(4, 4);
-    uav_T.block<3, 3>(0, 0) = uav_R;
-    uav_T.block<3, 1>(0, 3) = uav_t;
-
+    Eigen::Matrix4d T_v_i = Eigen::MatrixXd::Identity(4, 4);
+    T_v_i.block<3, 3>(0, 0) = uav_R;
+    T_v_i.block<3, 1>(0, 3) = uav_t;
+#endif
     //obtain relative pose
     payload_time = payload_msg.header.stamp.toSec();
-    Eigen::Matrix4d relative_T;
-    relative_T = uav_T.inverse() * T_p_c;
-    relativeposedata.push_back(std::make_pair(payload_time, relative_T));
+    Tform T_p_v = T_p_i * T_v_i.inverse();
+    T_pk_vk.push_back(std::make_pair(payload_time, T_p_v));
 
-    if (sizeof(relativeposedata) > 10)
+    if (sizeof(T_pk_vk) > 10)
     {
         Vec relative_velocity = CalculateVelocityFromPose();
-
-        //generate relative msg
         pose_msg.header = payload_msg.header;
-        pose_msg.pose.pose.position.x = relative_T(0, 3);
-        pose_msg.pose.pose.position.y = relative_T(1, 3);
-        pose_msg.pose.pose.position.z = relative_T(2, 3);
-        pose_msg.pose.covariance[1] = 0;
-        Eigen::Matrix3d relative_rotation = relative_T.block<3, 3>(0, 0);
-        Quat q_relative(relative_rotation);
-        pose_msg.pose.pose.orientation = q_relative.toMsgsQuat();
 
+#if TFORM_USE
+        //generate relative msg
+        pose_msg.pose.pose = T_p_v.toMsgsPose();
+#else
+        Eigen::Matrix3d relative_rotation = T_p_v.block<3, 3>(0, 0);
+        Quat q_relative(relative_rotation);
+        pose_msg.pose.pose.position.x = T_p_v(0, 3);
+        pose_msg.pose.pose.position.y = T_p_v(1, 3);
+        pose_msg.pose.pose.position.z = T_p_v(2, 3);
+        pose_msg.pose.pose.orientation = q_relative.toMsgsQuat();
+#endif
+        pose_msg.pose.covariance[1] = 0;
         pose_msg.twist.twist.linear = relative_velocity.toMsgsVector3();
         pub_flag = 1;
-        // std::cout <<relative_T<< "done" << count++ <<"\t header is" <<payload_time <<std::endl;
+        // std::cout <<T_p_v<< "done" << count++ <<"\t header is" <<payload_time <<std::endl;
     }
 
     if (Loss_Flag == 1)
@@ -113,10 +110,8 @@ void FlagDetect(const std_msgs::String::ConstPtr &msg)
 
 Eigen::Vector3d CalculateVelocityFromPose()
 {
-    Eigen::Vector3d payload_v_onestep;
-    double dt = relativeposedata.back().first - relativeposedata[relativeposedata.size() - 2].first;
-    payload_v_onestep = (relativeposedata.back().second - relativeposedata[relativeposedata.size() - 2].second).block<3, 1>(0, 3) / dt;
-    return payload_v_onestep;
+    double T_k = T_pk_vk.back().first - T_pk_vk.rbegin()[1].first;
+    return (T_pk_vk.back().second - T_pk_vk[T_pk_vk.size() - 2].second).block<3, 1>(0, 3) / T_k;
 }
 
 void initros()
