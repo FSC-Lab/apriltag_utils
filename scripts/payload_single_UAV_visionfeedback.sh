@@ -7,4 +7,4 @@ gnome-terminal --window -e 'bash -c "roslaunch px4 single_drone_payload_vision_s
 --tab -e 'bash -c "sleep 3; rosrun track_april_tag april_tag_opencv_emulate; exec bash"' \
 --tab -e 'bash -c "sleep 2; rosrun qt_ground_station qt_ground_station & rosrun px4_command set_uav2_mode; exec bash"' \
 
-roslaunch optitrack_broadcast emulator_for_gazebo.launch > /dev/null 2>&1 &
+roslaunch optitrack_broadcast emulator_for_gazebo.launch > /dev/null 2>& 1 &

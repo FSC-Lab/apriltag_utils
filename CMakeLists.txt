@@ -31,6 +31,7 @@ LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
 find_package(catkin REQUIRED COMPONENTS
 roscpp
+rospy
 sensor_msgs
 cv_bridge
 image_transport
@@ -68,6 +69,10 @@ image_transport
 nav_msgs
 )
 
+file(GLOB_RECURSE PYTHON_SCRIPTS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS scripts/*.py)
+
+catkin_install_python(PROGRAMS ${PYTHON_SCRIPTS}
+                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 add_library(${PROJECT_NAME} SHARED
 ${apriltag_LIBRARIES}
