@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 project(apriltag_utils)
 
 IF(NOT CMAKE_BUILD_TYPE)
@@ -47,6 +47,13 @@ if(NOT OpenCV_FOUND)
 endif()
 
 find_package(apriltag REQUIRED)
+if(apriltag_FOUND)
+   if(${CMAKE_VERSION} VERSION_LESS "3.10.0")
+      add_definitions(-DHAVE_APRILTAG)
+   else()
+      add_compile_definitions(HAVE_APRILTAG)
+   endif()
+endif()
 
 
 include_directories(

@@ -45,11 +45,18 @@ class posePlot():
         elif isinstance(data, Mocap):
             q = data.quaternion
 
-        elif isinstance(data, Pose) or isinstance(data, PoseStamped):
+        elif isinstance(data, Pose): 
             q = np.array([[data.orientation.w],
                           [data.orientation.x],
                           [data.orientation.y],
                           [data.orientation.z]])
+        elif isinstance(data, PoseStamped):
+            q = np.array([[data.pose.orientation.w],
+                            [data.pose.orientation.x],
+                            [data.pose.orientation.y],
+                            [data.pose.orientation.z]])
+
+            q/= (q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
             self.dcm[:][:][key] = self.to_dcm(q).squeeze()
             self.plot()
 

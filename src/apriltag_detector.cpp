@@ -34,6 +34,7 @@ either expressed or implied, of the Regents of The University of Michigan.
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
 #include <geometry_msgs/PoseStamped.h>
+#include "../include/math/Tform.h"
 
 #include "unistd.h"
 #include <chrono>
@@ -219,11 +220,16 @@ int main(int argc, char *argv[])
             // Then call estimate_tag_pose.
             info.det = det;
             apriltag_pose_t pose;
-            double err = estimate_tag_pose(&info, &pose);
+            // double err = estimate_tag_pose(&info, &pose);
             // Do something with pose.
+            std::cout << "========================" <<std::endl;
+            std::cout << "Transformation!" << std::endl;
             std::cout << pose.t->data[0] << "\t" << pose.t->data[1] << "\t" << pose.t->data[2] << std::endl;
 
             //publish pose
+
+            Tform T_p_c(pose);
+            std::cout << T_p_c << std::endl;
 
             pose_msg.header.stamp = time_c;
             pose_msg.pose.position.x = pose.t->data[0];
@@ -238,6 +244,8 @@ int main(int argc, char *argv[])
             double r31 = pose.R->data[6];
             double r32 = pose.R->data[7];
             double r33 = pose.R->data[8];
+            std::cout << "old version!" << std::endl;
+            std::cout << r11 << r12 << r13 << r21 << r22 << r23 << r31 << r32 << r33 <<std::endl;
 
             //  double * quater = Rotation_Quaternion (r11,r12,r13,r21,r22,r23,r31,r32,r33);
             pose_msg.pose.orientation.w = time_c.toSec();
