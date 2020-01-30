@@ -92,8 +92,8 @@ ${EIGEN3_LIBS}
 # Sources for apriltag emulator
 ##############################################################################
 file(GLOB_RECURSE EMULATOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*emulator.cpp)
-add_executable(april_tag_opencv_emulate ${EMULATOR_SOURCES})
-target_link_libraries(april_tag_opencv_emulate
+add_executable(apriltag_emulator ${EMULATOR_SOURCES})
+target_link_libraries(apriltag_emulator
 ${PROJECT_NAME}
 ${catkin_LIBRARIES})
 
@@ -102,8 +102,8 @@ ${catkin_LIBRARIES})
 ##############################################################################
 file(GLOB_RECURSE DETECTOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*detector.cpp)
 
-add_executable(april_tag_opencv ${DETECTOR_SOURCES})
-target_link_libraries(april_tag_opencv 
+add_executable(apriltag_detector ${DETECTOR_SOURCES})
+target_link_libraries(apriltag_detector 
 ${PROJECT_NAME}
 ${catkin_LIBRARIES})
 
