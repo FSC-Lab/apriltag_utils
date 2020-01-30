@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(track_april_tag)
+project(apriltag_utils)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release)
