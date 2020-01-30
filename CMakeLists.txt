@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-project(track_april_tag)
+cmake_minimum_required(VERSION 3.5)
+project(apriltag_utils)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release)
@@ -47,6 +47,13 @@ if(NOT OpenCV_FOUND)
 endif()
 
 find_package(apriltag REQUIRED)
+if(apriltag_FOUND)
+   if(${CMAKE_VERSION} VERSION_LESS "3.10.0")
+      add_definitions(-DHAVE_APRILTAG)
+   else()
+      add_compile_definitions(HAVE_APRILTAG)
+   endif()
+endif()
 
 
 include_directories(
@@ -92,8 +99,8 @@ ${EIGEN3_LIBS}
 # Sources for apriltag emulator
 ##############################################################################
 file(GLOB_RECURSE EMULATOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*emulator.cpp)
-add_executable(april_tag_opencv_emulate ${EMULATOR_SOURCES})
-target_link_libraries(april_tag_opencv_emulate
+add_executable(apriltag_emulator ${EMULATOR_SOURCES})
+target_link_libraries(apriltag_emulator
 ${PROJECT_NAME}
 ${catkin_LIBRARIES})
 
@@ -102,8 +109,8 @@ ${catkin_LIBRARIES})
 ##############################################################################
 file(GLOB_RECURSE DETECTOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*detector.cpp)
 
-add_executable(april_tag_opencv ${DETECTOR_SOURCES})
-target_link_libraries(april_tag_opencv 
+add_executable(apriltag_detector ${DETECTOR_SOURCES})
+target_link_libraries(apriltag_detector 
 ${PROJECT_NAME}
 ${catkin_LIBRARIES})
 

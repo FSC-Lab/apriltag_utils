@@ -8,6 +8,7 @@ import numpy as np
 import rospy
 from mpl_toolkits.mplot3d import Axes3D
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Pose, PoseStamped
 from optitrack_broadcast.msg import Mocap
 
 
@@ -16,40 +17,58 @@ class posePlot():
 
         self.fig = plt.figure()
         self.ax = self.fig.gca(projection='3d')
-        self._sub = {"/uav2/px4_command/visualmeasurement": rospy.Subscriber("/uav2/px4_command/visualmeasurement", Odometry, self.msgCallback, queue_size=1),
-                     "/mocap/Payload": rospy.Subscriber("/mocap/Payload", Mocap, self.msgCallback, queue_size=1)}
-        self.flag_draw = {"odom": False, "mocap": False}
-        self.plotted = False
+        self._topics = {"/uav2/px4_command/visualmeasurement": Odometry,
+                        "/mocap/Payload": Mocap,
+                        "/mocap/UAV2": Mocap
+                        }
+
+        self._sub = {}
+        for idx, key in enumerate(self._topics.keys()):
+            try:
+                self._sub[key] = rospy.Subscriber(
+                    key, self._topics[key], self.msgCallback, callback_args=idx, queue_size=1)
+            except:
+                print("Subscription to {} failed!".format(key))
+
         self.last = timer()
-        self.dcm = np.zeros((2, 3, 3))
+        self.dcm = np.zeros((len(self._sub), 3, 3))
+
+        # Throttle plotting rate! 10Hz appears to be working fine
+        self.update_rate = 10
         plt.show()
 
-    def msgCallback(self, data):
-
+    def msgCallback(self, data, args):
+        key = args
         if isinstance(data, Odometry):
-            q = np.array([[data.pose.pose.orientation.w], [data.pose.pose.orientation.x],
-                          [data.pose.pose.orientation.y], [data.pose.pose.orientation.z]])
-            self.dcm[:][:][0] = self.to_dcm(q).squeeze()
-            self.flag_draw["odom"] = True
+            q = np.array([[data.pose.pose.orientation.w],
+                          [data.pose.pose.orientation.x],
+                          [data.pose.pose.orientation.y],
+                          [data.pose.pose.orientation.z]])
 
         elif isinstance(data, Mocap):
-            self.dcm[:][:][1] = self.to_dcm(data.quaternion).squeeze()
-            self.flag_draw["mocap"] = True
+            q = data.quaternion
 
-        now = timer()
-        if now - self.last >= 0.1:
-            self.last = now
-            self.plot()
+        elif isinstance(data, Pose) or isinstance(data, PoseStamped):
+            q = np.array([[data.orientation.w],
+                          [data.orientation.x],
+                          [data.orientation.y],
+                          [data.orientation.z]])
+
+        self.dcm[:][:][key] = self.to_dcm(q).squeeze()
+        self.plot()
 
     def plot(self):
-        if self.flag_draw["odom"] and self.flag_draw["mocap"]:
+        now = timer()
+        if now - self.last >= 1/self.update_rate:
+            self.last = now
             self.ax.cla()
-            self.flag_draw["odom"] = False
-            self.flag_draw["mocap"] = False
-
-            self.plotframe(self.dcm[:][:][0], lbl=['p_1', 'p_2', 'p_3'])
-            self.plotframe(self.dcm[:][:][1], stl=['--c', '--m', '--y'], lbl=[
-                           'p_t_1', 'p_t_2', 'p_t_3'])
+            C_p_v = self.dcm[:][:][0]
+            if np.count_nonzero(self.dcm[:][:][1]) and np.count_nonzero(self.dcm[:][:][2]):
+                C_p_v_t = np.matmul(self.dcm[:][:][1],
+                                    self.dcm[:][:][2].transpose())
+            self.plotframe(C_p_v, lbl=['p_1', 'p_2', 'p_3'])
+            self.plotframe(C_p_v_t, stl=['--c', '--m', '--y'], lbl=[
+                'p_t_1', 'p_t_2', 'p_t_3'])
             self.ax.set_xlim3d(-1, 1)
             self.ax.set_ylim3d(-1, 1)
             self.ax.set_zlim3d(-1, 1)

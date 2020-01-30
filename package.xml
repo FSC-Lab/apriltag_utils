@@ -1,14 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>track_april_tag</name>
-  <version>2.2.9</version>
+  <name>apriltag_utils</name>
+  <version>3.0.1</version>
   <description>rpi camera yc</description>
-  <maintainer email="cheng.yuan@flight.utias.utoronto.ca">Sergey Dorodnicov</maintainer>
-  <license>Apache 2.0</license>
+  <maintainer email="hei.go@mail.utoronto.ca">H S Helson Go</maintainer>
+  <license>gplv3</license>
 
 
-  <author email="sergey.dorodnicov@intel.com">Sergey Dorodnicov</author>
-  <author email="doron.hirshberg@intel.com">Doron Hirshberg</author>
+  <author email="cheng.yuan@flight.utias.utoronto.ca">Yuan Cheng</author>
   <buildtool_depend>catkin</buildtool_depend>
   <depend>eigen_conversions</depend>
   <depend>image_transport</depend>

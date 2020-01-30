@@ -2,6 +2,10 @@
 #include <Eigen/Eigen>
 #include <geometry_msgs/Pose.h>
 
+#ifdef HAVE_APRILTAG
+#include "apriltag_pose.h"
+#endif
+
 #include "Vec.h"
 #include "Quat.h"
 
@@ -36,12 +40,32 @@ public:
         this->block<1, 4>(3, 0) << 0, 0, 0, 1;
     }
 
-    Tform(const Vector3d vec, const Quaterniond &quat)
+    // ctor from a vector and a quaternion
+    Tform(const Vector3d &vec, const Quaterniond &quat)
     {
         this->block<3, 1>(0, 3) = vec;
         this->block<3, 3>(0, 0) = Quat(quat).toRotationMatrix();
         this->block<1, 4>(3, 0) << 0, 0, 0, 1;
     }
+
+    // ctor from a DCM and a quaternion, be mindful of DCM convention!
+    Tform(const Vector3d &vec, const Matrix3d &mat)
+    {
+        this->block<3, 1>(0, 3) = vec;
+        this->block<3, 3>(0, 0) = mat;
+        this->block<1, 4>(3, 0) << 0, 0, 0, 1;
+    }
+
+    // ctor from apriltag pose struct
+#ifdef HAVE_APRILTAG
+    Tform(apriltag_pose_t &pose)
+    {
+        this->block<3, 1>(0, 3) << pose.t->data[0], pose.t->data[1], pose.t->data[2];
+        this->block<3, 3>(0, 0) << pose.R->data[0], pose.R->data[1], pose.R->data[2],
+            pose.R->data[3], pose.R->data[4], pose.R->data[5],
+            pose.R->data[6], pose.R->data[7], pose.R->data[8];
+    }
+#endif
 
     template <typename OtherDerived>
     Tform &operator=(const BaseType<OtherDerived> &other)
@@ -53,7 +77,7 @@ public:
     inline Tform inverse(void)
     {
         Tform inv;
-        inv.block<3, 1>(0, 3) = -this->rotation().transpose()*this->translation();
+        inv.block<3, 1>(0, 3) = -this->rotation().transpose() * this->translation();
         inv.block<3, 3>(0, 0) = this->rotation().transpose();
         inv.block<1, 4>(3, 0) << 0, 0, 0, 1;
         return inv;

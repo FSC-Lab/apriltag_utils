@@ -1,10 +1,12 @@
 
-# apriltag_pose_ros
+# apriltag_utils
+Heavily rewritten version of apriltag_ros containing directory reorganization and inclusion of a Eigen subclass to handle SO3 / SE3 operations and easy conversion to / from ros messages
+
 This is a ROS wrapper for publishing Apriltag with Jetson nano and RPI camera V2 through CSI  
 It is truely easy to use. On jetson nano with ROS. A constant velocity EKF filter is introducted to enhance the performance.  
 ## Complie Instruciton
 ```
-catkin_make
+catkin build
 ```
 
 ### Dependency
