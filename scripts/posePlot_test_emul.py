@@ -8,8 +8,8 @@ import numpy as np
 import rospy
 from mpl_toolkits.mplot3d import Axes3D
 from nav_msgs.msg import Odometry
-from optitrack_broadcast.msg import Mocap
 from geometry_msgs.msg import Pose, PoseStamped
+from optitrack_broadcast.msg import Mocap
 
 
 class posePlot():
@@ -17,7 +17,10 @@ class posePlot():
 
         self.fig = plt.figure()
         self.ax = self.fig.gca(projection='3d')
-        self._topics = {"rpicamerav2/apriltag/pose": PoseStamped}
+        self._topics = {"/uav2/px4_command/visualmeasurement": Odometry,
+                        "/mocap/Payload": Mocap,
+                        "/mocap/UAV2": Mocap
+                        }
 
         self._sub = {}
         for idx, key in enumerate(self._topics.keys()):
@@ -50,18 +53,22 @@ class posePlot():
                           [data.orientation.x],
                           [data.orientation.y],
                           [data.orientation.z]])
-            self.dcm[:][:][key] = self.to_dcm(q).squeeze()
-            self.plot()
+
+        self.dcm[:][:][key] = self.to_dcm(q).squeeze()
+        self.plot()
 
     def plot(self):
         now = timer()
         if now - self.last >= 1/self.update_rate:
             self.last = now
             self.ax.cla()
-
             C_p_v = self.dcm[:][:][0]
-
-            self.plotframe(C_p_v)
+            if np.count_nonzero(self.dcm[:][:][1]) and np.count_nonzero(self.dcm[:][:][2]):
+                C_p_v_t = np.matmul(self.dcm[:][:][1],
+                                    self.dcm[:][:][2].transpose())
+            self.plotframe(C_p_v, lbl=['p_1', 'p_2', 'p_3'])
+            self.plotframe(C_p_v_t, stl=['--c', '--m', '--y'], lbl=[
+                'p_t_1', 'p_t_2', 'p_t_3'])
             self.ax.set_xlim3d(-1, 1)
             self.ax.set_ylim3d(-1, 1)
             self.ax.set_zlim3d(-1, 1)
