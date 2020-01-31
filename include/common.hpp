@@ -1,10 +1,12 @@
 #ifndef filter_H
 #define filter_H
 
-#include <Eigen/Dense>
 #include <iostream>
 #include <vector>
-#include <geometry_msgs/PoseStamped.h>
+#include "math/Tform.hpp"
+#include "math/Quat.hpp"
+#include "math/Vec.hpp"
+
 
 // Templates for N-d matrices / arrays only!
 // Template for N-d vectors, i.e. N-by-1 matrices

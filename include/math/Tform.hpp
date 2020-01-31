@@ -1,3 +1,5 @@
+#ifndef TFORM_H
+#define TFORM_H
 #include <Eigen/Geometry>
 #include <Eigen/Eigen>
 #include <geometry_msgs/Pose.h>
@@ -6,8 +8,8 @@
 #include "apriltag_pose.h"
 #endif
 
-#include "Vec.h"
-#include "Quat.h"
+#include "Vec.hpp"
+#include "Quat.hpp"
 
 class Tform : public Eigen::Matrix4d
 {
@@ -23,17 +25,18 @@ public:
     using Matrix4d = Eigen::Matrix4d;
     using Quaterniond = Eigen::Quaterniond;
 
-    Tform(void) : Matrix4d() {}
+    // Default ctor sets transform matrix to identity
+    explicit inline Tform(void) : Matrix4d() { this->setIdentity(); }
 
     // This constructor allows you to construct Tform from 4 by 4 Eigen matrices
     template <typename OtherDerived>
-    Tform(const BaseType<OtherDerived> &other)
+    explicit inline Tform(const BaseType<OtherDerived> &other)
         : Matrix4d(other)
     {
     }
 
     // ctor from ROS geometry message
-    Tform(const geometry_msgs::Pose &pose)
+    inline Tform(const geometry_msgs::Pose &pose)
     {
         this->block<3, 1>(0, 3) = Vec(pose.position);
         this->block<3, 3>(0, 0) = Quat(pose.orientation).toRotationMatrix();
@@ -41,7 +44,7 @@ public:
     }
 
     // ctor from a vector and a quaternion
-    Tform(const Vector3d &vec, const Quaterniond &quat)
+    inline Tform(const Vector3d &vec, const Quaterniond &quat)
     {
         this->block<3, 1>(0, 3) = vec;
         this->block<3, 3>(0, 0) = Quat(quat).toRotationMatrix();
@@ -49,7 +52,7 @@ public:
     }
 
     // ctor from a DCM and a quaternion, be mindful of DCM convention!
-    Tform(const Vector3d &vec, const Matrix3d &mat)
+    inline Tform(const Vector3d &vec, const Matrix3d &mat)
     {
         this->block<3, 1>(0, 3) = vec;
         this->block<3, 3>(0, 0) = mat;
@@ -58,12 +61,13 @@ public:
 
     // ctor from apriltag pose struct
 #ifdef HAVE_APRILTAG
-    Tform(apriltag_pose_t &pose)
+    inline Tform(const apriltag_pose_t &pose)
     {
         this->block<3, 1>(0, 3) << pose.t->data[0], pose.t->data[1], pose.t->data[2];
         this->block<3, 3>(0, 0) << pose.R->data[0], pose.R->data[1], pose.R->data[2],
             pose.R->data[3], pose.R->data[4], pose.R->data[5],
             pose.R->data[6], pose.R->data[7], pose.R->data[8];
+        this->block<1, 4>(3, 0) << 0, 0, 0, 1;
     }
 #endif
 
@@ -95,3 +99,4 @@ public:
         return ros_pose;
     }
 };
+#endif

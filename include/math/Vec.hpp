@@ -1,8 +1,8 @@
+#ifndef VEC_H
+#define VEC_H
 #include <Eigen/Eigen>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/Vector3.h>
-#ifndef VEC_H
-#define VEC_H
 
 class Vec : public Eigen::Vector3d
 {
@@ -19,7 +19,7 @@ public:
         : Vector3d(other)
     {
     }
-    
+
     Vec(const double &x, const double &y, const double &z) : Vector3d(x, y, z){};
 
     // ctor from ROS geometry message point
@@ -62,5 +62,4 @@ public:
         return vector3;
     }
 };
-
 #endif

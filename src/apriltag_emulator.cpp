@@ -11,11 +11,8 @@
 
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
-#include "common.hpp"
 
-#include "../include/math/Quat.h"
-#include "../include/math/Vec.h"
-#include "../include/math/Tform.h"
+#include "../include/common.hpp"
 
 #define TFORM_USE 1
 
@@ -63,7 +60,7 @@ void GetPayloadPose(const nav_msgs::Odometry::ConstPtr &payloadmsg, const nav_ms
 #endif
     //obtain relative pose
     payload_time = payload_msg.header.stamp.toSec();
-    Tform T_p_v = T_p_i * T_v_i.inverse();
+    Tform T_p_v = Tform(T_p_i * T_v_i.inverse());
     T_pk_vk.push_back(std::make_pair(payload_time, T_p_v));
 
     if (sizeof(T_pk_vk) > 10)
