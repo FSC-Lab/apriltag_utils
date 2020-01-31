@@ -48,7 +48,7 @@ endif()
 
 find_package(apriltag REQUIRED)
 if(apriltag_FOUND)
-   if(${CMAKE_VERSION} VERSION_LESS "3.10.0")
+   if(${CMAKE_VERSION} VERSION_LESS "3.12.0")
       add_definitions(-DHAVE_APRILTAG)
    else()
       add_compile_definitions(HAVE_APRILTAG)
@@ -129,3 +129,10 @@ ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
 )
 
+##############################################################################
+# Source for tests; Attempts to glob for files that appear to be tests
+##############################################################################
+file(GLOB_RECURSE TESTS_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*test*.cpp)
+if (TESTS_SOURCES)
+add_executable(custom_test ${TESTS_SOURCES})
+endif()

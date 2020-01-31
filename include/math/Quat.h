@@ -1,3 +1,4 @@
+#include <cmath>
 #include <Eigen/Geometry>
 #include <geometry_msgs/Quaternion.h>
 #ifndef QUAT_H
@@ -11,6 +12,11 @@ public:
 
     template <typename Derived>
     using MatType = const Eigen::MatrixBase<Derived>;
+
+    using Vector3d = Eigen::Vector3d;
+    using Matrix3d = Eigen::Matrix3d;
+    using Vector4d = Eigen::Vector4d;
+    using Matrix4d = Eigen::Matrix4d;
 
     using Quaterniond = Eigen::Quaterniond;
 
@@ -36,29 +42,36 @@ public:
         this->Quaterniond::operator=(other);
         return *this;
     }
-    
+
     geometry_msgs::Quaternion toMsgsQuat(void)
     {
         geometry_msgs::Quaternion ros_quat;
-        Eigen::Vector4d QuatCoeff = this->Quaterniond::coeffs();
-        ros_quat.w = QuatCoeff(3);
-        ros_quat.x = QuatCoeff(0);
-        ros_quat.y = QuatCoeff(1);
-        ros_quat.z = QuatCoeff(2);
+        Vector4d q = this->Quaterniond::coeffs();
+        ros_quat.w = q(3);
+        ros_quat.x = q(0);
+        ros_quat.y = q(1);
+        ros_quat.z = q(2);
 
         return ros_quat;
     }
 
-    Eigen::Matrix3d toDCM(void)
+    Matrix3d toDCM(void)
     {
         return this->Quaterniond::toRotationMatrix().transpose();
     }
 
-    Eigen::Vector4d coeffs_wxyz(void)
+    Vector4d coeffsWxyz(void)
     {
-        Eigen::Vector4d QuatCoeff = this->Quaterniond::coeffs();
-        Eigen::Vector4d WxyzCoeff(QuatCoeff(3), QuatCoeff(0), QuatCoeff(1), QuatCoeff(2)); 
-        return WxyzCoeff;
+        Vector4d q = this->Quaterniond::coeffs();
+        return Vector4d(q(3), q(0), q(1), q(2));
+    }
+
+    Vector3d toEul(void)
+    {
+        Vector4d q = this->coeffsWxyz();
+        return Vector3d(atan2(2.0 * (q(0) * q(1) + q(2) * q(3)), 1.0 - 2.0 * (q(1) * q(1) + q(2) * q(2))),
+                        asin(2.0 * (q(0) * q(2) - q(3) * q(1))),
+                        atan2(2.0 * (q(0) * q(3) + q(1) * q(2)), 1.0 - 2.0 * (q(2) * q(2) + q(3) * q(3))));
     }
 };
 #endif

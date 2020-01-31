@@ -49,6 +49,8 @@ extern "C"
 }
 
 #define LOAD_CAM_PARAM 0
+#define TFORM_USE 1
+#define PUB_IMAGE 1
 using namespace std;
 using namespace cv;
 
@@ -62,7 +64,9 @@ std::string gstreamer_pipeline(int capture_width, int capture_height, int displa
 
 int main(int argc, char *argv[])
 {
+    Tform T_p_c;
 
+    Tform T_iden;
     ros::init(argc, argv, "track_april_tag");
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
@@ -179,12 +183,13 @@ int main(int argc, char *argv[])
         cvtColor(frame, gray, COLOR_BGR2GRAY);
         //   undistort(gray,un_gray,matrix,coeff,new_matrix);
         ros::Time time_c = ros::Time::now();
-        /* if (!frame.empty()) {
+        #if PUB_IMAGE
+        if (!frame.empty()) {
             msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", gray).toImageMsg();  
 	        msg->header.stamp = time_c;  
             image_pub.publish(msg);  
-        }*/
-
+        }
+        #endif
         //ros camera publish
 
         // Make an image_u8_t header for the Mat data
@@ -199,15 +204,7 @@ int main(int argc, char *argv[])
         {
 
             pose_msg.header.stamp = time_c;
-            pose_msg.pose.position.x = 0;
-            pose_msg.pose.position.y = 0;
-            pose_msg.pose.position.z = 0;
-
-            //  double * quater = Rotation_Quaternion (r11,r12,r13,r21,r22,r23,r31,r32,r33);
-            pose_msg.pose.orientation.w = time_c.toSec();
-            pose_msg.pose.orientation.x = 0;
-            pose_msg.pose.orientation.y = 0;
-            pose_msg.pose.orientation.z = 0;
+            pose_msg.pose = T_iden.toMsgsPose();
             pose_pub.publish(pose_msg);
         }
 
@@ -220,17 +217,17 @@ int main(int argc, char *argv[])
             // Then call estimate_tag_pose.
             info.det = det;
             apriltag_pose_t pose;
-            // double err = estimate_tag_pose(&info, &pose);
+            double err = estimate_tag_pose(&info, &pose);
             // Do something with pose.
-            std::cout << "========================" <<std::endl;
-            std::cout << "Transformation!" << std::endl;
-            std::cout << pose.t->data[0] << "\t" << pose.t->data[1] << "\t" << pose.t->data[2] << std::endl;
+            std::cout << "detection error is " << err << std::endl;
 
             //publish pose
-
-            Tform T_p_c(pose);
-            std::cout << T_p_c << std::endl;
-
+            #if TFORM_USE 
+            T_p_c = Tform(pose);
+            Eigen::Vector3d Eul = Quat(T_p_c.rotation()).toEul();
+            std::cout << "\r" << "Roll:" << Eul(0)*57.2957804977 << "Pitch:" << Eul(1)*57.2957804977 << "Yaw:" << Eul(2)*57.2957804977 << std::endl;
+            pose_msg.pose = T_p_c.toMsgsPose();
+            #else
             pose_msg.header.stamp = time_c;
             pose_msg.pose.position.x = pose.t->data[0];
             pose_msg.pose.position.y = pose.t->data[1];
@@ -252,6 +249,8 @@ int main(int argc, char *argv[])
             pose_msg.pose.orientation.x = atan2(r32, r33) * 180 / M_PI;
             pose_msg.pose.orientation.y = atan2(-r31, sqrt(r32 * r32 + r33 * r33)) * 180 / M_PI;
             pose_msg.pose.orientation.z = atan2(r21, r11) * 180 / M_PI;
+            #endif
+
             pose_pub.publish(pose_msg);
 
             /*
