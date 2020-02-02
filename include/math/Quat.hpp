@@ -1,8 +1,8 @@
+#ifndef QUAT_H
+#define QUAT_H
 #include <cmath>
 #include <Eigen/Geometry>
 #include <geometry_msgs/Quaternion.h>
-#ifndef QUAT_H
-#define QUAT_H
 
 class Quat : public Eigen::Quaterniond
 {

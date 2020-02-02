@@ -11,11 +11,8 @@
 
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
-#include "common.hpp"
 
-#include "../include/math/Quat.h"
-#include "../include/math/Vec.h"
-#include "../include/math/Tform.h"
+#include "../include/common.hpp"
 
 #define TFORM_USE 1
 

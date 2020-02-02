@@ -1,3 +1,5 @@
+#ifndef TFORM_H
+#define TFORM_H
 #include <Eigen/Geometry>
 #include <Eigen/Eigen>
 #include <geometry_msgs/Pose.h>
@@ -6,8 +8,8 @@
 #include "apriltag_pose.h"
 #endif
 
-#include "Vec.h"
-#include "Quat.h"
+#include "Vec.hpp"
+#include "Quat.hpp"
 
 class Tform : public Eigen::Matrix4d
 {
@@ -97,3 +99,4 @@ public:
         return ros_pose;
     }
 };
+#endif
