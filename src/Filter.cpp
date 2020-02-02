@@ -15,8 +15,6 @@ void Filter::receivedata(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
     Eigen::Matrix<double, N_ob, 1> measurement;
 
-    
-
     measurement(0) = msg->pose.position.x;
     measurement(1) = msg->pose.position.y;
     measurement(2) = msg->pose.position.z; //compensate some offset
