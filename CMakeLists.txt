@@ -55,6 +55,9 @@ if(apriltag_FOUND)
    endif()
 endif()
 
+catkin_package(
+  INCLUDE_DIRS include
+)
 
 include_directories(
 ${PROJECT_SOURCE_DIR}
@@ -117,11 +120,10 @@ ${catkin_LIBRARIES})
 ##############################################################################
 # Sources for Kalman Filter
 ##############################################################################
-file(GLOB_RECURSE FILTER_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*filter.cpp)
+file(GLOB_RECURSE ESTIMATOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*Estimator.cpp src/Filter.cpp)
+add_executable(estimator ${ESTIMATOR_SOURCES})
 
-add_executable(pose_filter ${FILTER_SOURCES})
-
-target_link_libraries(pose_filter
+target_link_libraries(estimator
 ${PROJECT_NAME}
 ${catkin_LIBRARIES}
 ${apriltag_LIBRARIES}
@@ -132,7 +134,7 @@ ${EIGEN3_LIBS}
 ##############################################################################
 # Source for tests; Attempts to glob for files that appear to be tests
 ##############################################################################
-file(GLOB_RECURSE TESTS_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*test*.cpp)
+file(GLOB_RECURSE TESTS_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS tests/*test*.cpp)
 if (TESTS_SOURCES)
 add_executable(custom_test ${TESTS_SOURCES})
 endif()
