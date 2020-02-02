@@ -65,8 +65,8 @@ std::string gstreamer_pipeline(int capture_width, int capture_height, int displa
 int main(int argc, char *argv[])
 {
     Tform T_p_c;
-
     Tform T_iden;
+    
     ros::init(argc, argv, "track_april_tag");
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
