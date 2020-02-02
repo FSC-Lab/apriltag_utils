@@ -1,6 +1,6 @@
-#include "Filter.hpp"
+#include "../include/Filter.hpp"
 
-Filter::Filter(const MatrixXd<N_st> &P0, const MatrixXd<N_st> &Q0, const MatrixXd<N_ob> &R0) : P(P0), Q(Q0), R(R0)
+Filter::Filter(const MatrixXd<N_st> &P0, const MatrixXd<N_st> &Q, const MatrixXd<N_ob> &R) : P(P0), Q(Q), R(R)
 {
     X.block<3, 1>(0, 0) = Eigen::MatrixXd::Zero(3, 1);
     X.block<3, 1>(3, 0) = Eigen::MatrixXd::Zero(3, 1);
@@ -14,6 +14,8 @@ Filter::Filter(const MatrixXd<N_st> &P0, const MatrixXd<N_st> &Q0, const MatrixX
 void Filter::receivedata(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
     Eigen::Matrix<double, N_ob, 1> measurement;
+
+    
 
     measurement(0) = msg->pose.position.x;
     measurement(1) = msg->pose.position.y;
@@ -69,9 +71,8 @@ void Filter::publishpose(const ros::Publisher &pub)
         // There need to be compensate with attitude of UAV , if have yaw angle it will cause more error;
         // now the temp compensation is 0.03 -0.05 -0.02 should be multiple by a rotation matrix
 
-        VectorXd<3> r_c_v;
-        r_c_v << 0.02, 0.05, -0.02;
-        pose_msg.pose.pose.position = Pos(X.block<3,1>(0,0) + r_c_v).g_msg();
+        Vec r_c_v(0.02, 0.05, -0.02);
+        pose_msg.pose.pose.position = Vec(X.block<3, 1>(0, 0) + r_c_v).toMsgsPoint();
         pose_msg.pose.covariance[0] = P(1, 1);
         pose_msg.pose.covariance[7] = P(0, 0);
         pose_msg.pose.covariance[15] = P(2, 2);

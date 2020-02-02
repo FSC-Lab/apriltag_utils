@@ -70,8 +70,8 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "track_april_tag");
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
-    image_transport::Publisher image_pub = it.advertise("rpicamerav2/image_raw", 1);
-    ros::Publisher pose_pub = nh.advertise<geometry_msgs::PoseStamped>("rpicamerav2/apriltag/pose", 1);
+    image_transport::Publisher image_pub = it.advertise("RPi_camera_v2/image_raw", 1);
+    ros::Publisher pose_pub = nh.advertise<geometry_msgs::PoseStamped>("RPi_camera_v2/apriltag/pose", 1);
     sensor_msgs::ImagePtr msg;
     geometry_msgs::PoseStamped pose_msg;
     ros::Rate loop_rate(30);
@@ -110,8 +110,8 @@ int main(int argc, char *argv[])
     cv::Mat new_matrix; //matrix after undistort
     fs["camera_matrix"] >> matrix;
     fs["distortion_coefficients"] >> coeff;
-    cout << "Matrix" << matrix << std::endl;
-    cout << "Coeff" << coeff << std::endl;
+    cout << "Matrix" << matrix << endl;
+    cout << "Coeff" << coeff << endl;
     cout << " load parameters success! " << endl;
 #endif
     // Initialize Camera through CSI
@@ -128,14 +128,14 @@ int main(int argc, char *argv[])
                                               display_height,
                                               framerate,
                                               flip_method);
-    std::cout << "Using pipeline: \n\t" << pipeline << "\n";
+    cout << "Using pipeline: \n\t" << pipeline << "\n";
 
     cv::VideoCapture cap(pipeline, cv::CAP_GSTREAMER);
     // normal initialize
     //  cv::VideoCapture cap(1);
     if (!cap.isOpened())
     {
-        std::cout << "Failed to open camera." << std::endl;
+        cout << "Failed to open camera." << endl;
         return (-1);
     }
 
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
                          .buf = gray.data};
 
         zarray_t *detections = apriltag_detector_detect(td, &im);
-        cout << zarray_size(detections) << " tags detected" << endl;
+        cout << "\r" << zarray_size(detections) << " tags detected" << endl;
         if (zarray_size(detections) == 0)
         {
 
@@ -219,13 +219,13 @@ int main(int argc, char *argv[])
             apriltag_pose_t pose;
             double err = estimate_tag_pose(&info, &pose);
             // Do something with pose.
-            std::cout << "detection error is " << err << std::endl;
+            cout << "\r" << "detection error is " << err << endl;
 
             //publish pose
             #if TFORM_USE 
             T_p_c = Tform(pose);
             Eigen::Vector3d Eul = Quat(T_p_c.rotation()).toEul();
-            std::cout << "\r" << "Roll:" << Eul(0)*57.2957804977 << "Pitch:" << Eul(1)*57.2957804977 << "Yaw:" << Eul(2)*57.2957804977 << std::endl;
+            cout << "\r" << "Roll:" << Eul(0)*57.2957804977 << "Pitch:" << Eul(1)*57.2957804977 << "Yaw:" << Eul(2)*57.2957804977 << endl;
             pose_msg.pose = T_p_c.toMsgsPose();
             #else
             pose_msg.header.stamp = time_c;
@@ -241,8 +241,8 @@ int main(int argc, char *argv[])
             double r31 = pose.R->data[6];
             double r32 = pose.R->data[7];
             double r33 = pose.R->data[8];
-            std::cout << "old version!" << std::endl;
-            std::cout << r11 << r12 << r13 << r21 << r22 << r23 << r31 << r32 << r33 <<std::endl;
+            cout << "old version!" << endl;
+            cout << r11 << r12 << r13 << r21 << r22 << r23 << r31 << r32 << r33 <<endl;
 
             //  double * quater = Rotation_Quaternion (r11,r12,r13,r21,r22,r23,r31,r32,r33);
             pose_msg.pose.orientation.w = time_c.toSec();
@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
         apriltag_detections_destroy(detections);
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
         double ttrack = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
-        std::cout << "Tracking time cost is " << ttrack << "ms \n";
+        cout << "\r" << "Tracking time cost is " << ttrack << "ms \n";
         // imshow("Tag Detections", frame);
         //  imshow("Tag Detections undistort", un_gray);
         //   if (waitKey(30) >= 0)
