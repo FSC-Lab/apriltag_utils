@@ -18,6 +18,7 @@ void Filter::receivedata(const geometry_msgs::PoseStamped::ConstPtr &msg)
     measurement(0) = msg->pose.position.x;
     measurement(1) = msg->pose.position.y;
     measurement(2) = msg->pose.position.z; //compensate some offset
+    std::cout << measurement  << std::endl;
     Eigen::Vector3d p_measure = measurement.block<3, 1>(0, 0);
 
     // std::cout << measurement << std::endl; detect loss
@@ -103,7 +104,7 @@ void Filter::predict()
     P = P_pre;
     pub_flag = 1;
 
-    //   std::cout << X  << std::endl << F  << std::endl << P  << std::endl;
+    std::cout << X  << std::endl;
 }
 
 void Filter::update(Eigen::Matrix<double, N_ob, 1> &observe)

@@ -28,8 +28,8 @@ int main(int argc , char** argv)
     ros::Rate loop_rate(100);
 
     ros::NodeHandle nh;
-    ros::Subscriber pose_sub = nh.subscribe("rpicamerav2/apriltag/pose", 10, &Filter::receivedata, &Estimator);
-    ros::Publisher pose_publisher = nh.advertise<nav_msgs::Odometry>("/uav2/px4_command/visualmeasurement", 10);
+    ros::Subscriber pose_sub = nh.subscribe("RPi_camera_v2/apriltag/pose", 10, &Filter::receivedata, &Estimator);
+    ros::Publisher pose_publisher = nh.advertise<nav_msgs::Odometry>("/RPi_camera_v2/estimator/pose", 10);
 
     while (ros::ok())
     {
