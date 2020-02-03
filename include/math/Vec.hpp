@@ -20,19 +20,14 @@ public:
     {
     }
 
+    // ctor from vector components
     Vec(const double &x, const double &y, const double &z) : Vector3d(x, y, z){};
 
     // ctor from ROS geometry message point
-    Vec(const geometry_msgs::Point &point)
-    {
-        *this << point.x, point.y, point.z;
-    }
+    Vec(const geometry_msgs::Point &point) : Vector3d(point.x, point.y, point.z){};
 
     // ctor from ROS geometry message vector3
-    Vec(const geometry_msgs::Vector3 &vector3)
-    {
-        *this << vector3.x, vector3.y, vector3.z;
-    }
+    Vec(const geometry_msgs::Vector3 &vector3) : Vector3d(vector3.x, vector3.y, vector3.z){};
 
     // This method allows you to assign Eigen expressions to Vec
     template <typename OtherDerived>
@@ -42,6 +37,7 @@ public:
         return *this;
     }
 
+    // conversion to ROS geometry message point
     geometry_msgs::Point toMsgsPoint(void)
     {
         geometry_msgs::Point point;
@@ -52,6 +48,7 @@ public:
         return point;
     }
 
+    // conversion to ROS geometry message vector3
     geometry_msgs::Vector3 toMsgsVector3(void)
     {
         geometry_msgs::Vector3 vector3;

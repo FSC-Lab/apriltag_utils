@@ -73,5 +73,11 @@ public:
                         asin(2.0 * (q(0) * q(2) - q(3) * q(1))),
                         atan2(2.0 * (q(0) * q(3) + q(1) * q(2)), 1.0 - 2.0 * (q(2) * q(2) + q(3) * q(3))));
     }
+
+    Vector3d toRotvec(void)
+    {
+        Vector4d q = this->coeffsWxyz();
+        return 2 * acos(q(0)) * q.block<3, 1>(1, 0).normalized();
+    }
 };
 #endif
