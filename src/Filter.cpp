@@ -112,12 +112,16 @@ void Filter::predict()
     P = P_pre;
     pub_flag = 1;
 
+<<<<<<< bfea2c194effb599c57d20574eeb505bbf1774c7
     std::cout << "Predicted state" << X.transpose() << std::endl;
 }
 
 void Filter::compute_obsv_Jacobian()
 {
     H.setIdentity();
+=======
+    std::cout << X  << std::endl << F  << std::endl << P  << std::endl;
+>>>>>>> launch
 }
 
 void Filter::update(Eigen::Matrix<double, N_ob, 1> &observe)
