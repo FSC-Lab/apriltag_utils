@@ -222,35 +222,11 @@ int main(int argc, char *argv[])
             cout << "\r" << "detection error is " << err << endl;
 
             //publish pose
-            #if TFORM_USE 
             T_p_c = Tform(pose);
             Eigen::Vector3d Eul = Quat(T_p_c.rotation()).toEul();
-            cout << "\r" << "Roll:" << Eul(0)*57.2957804977 << "Pitch:" << Eul(1)*57.2957804977 << "Yaw:" << Eul(2)*57.2957804977 << endl;
-            pose_msg.pose = T_p_c.toMsgsPose();
-            #else
+            cout << "\r" << "Roll:" << Eul(0)*57.2957804977 << "Pitch:" << Eul(1)*57.2957804977 << "Yaw:" << Eul(2)*57.2957804977 << endl; 
             pose_msg.header.stamp = time_c;
-            pose_msg.pose.position.x = pose.t->data[0];
-            pose_msg.pose.position.y = pose.t->data[1];
-            pose_msg.pose.position.z = pose.t->data[2];
-            double r11 = pose.R->data[0];
-            double r12 = pose.R->data[1];
-            double r13 = pose.R->data[2];
-            double r21 = pose.R->data[3];
-            double r22 = pose.R->data[4];
-            double r23 = pose.R->data[5];
-            double r31 = pose.R->data[6];
-            double r32 = pose.R->data[7];
-            double r33 = pose.R->data[8];
-            cout << "old version!" << endl;
-            cout << r11 << r12 << r13 << r21 << r22 << r23 << r31 << r32 << r33 <<endl;
-
-            //  double * quater = Rotation_Quaternion (r11,r12,r13,r21,r22,r23,r31,r32,r33);
-            pose_msg.pose.orientation.w = time_c.toSec();
-            pose_msg.pose.orientation.x = atan2(r32, r33) * 180 / M_PI;
-            pose_msg.pose.orientation.y = atan2(-r31, sqrt(r32 * r32 + r33 * r33)) * 180 / M_PI;
-            pose_msg.pose.orientation.z = atan2(r21, r11) * 180 / M_PI;
-            #endif
-
+            pose_msg.pose = T_p_c.toMsgsPose();
             pose_pub.publish(pose_msg);
 
             /*

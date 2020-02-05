@@ -36,9 +36,11 @@ public:
 
 	void predict();
 
-	void update(Eigen::Matrix<double, N_ob, 1> &observe);
+	void compute_proc_Jacobian();
+	
+	void compute_obsv_Jacobian();
 
-	void matToConsole();
+	void update(Eigen::Matrix<double, N_ob, 1> &observe);
 };
 
 //Publish message if predict and update has achieved a new message the flag will be 1

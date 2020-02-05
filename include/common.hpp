@@ -44,3 +44,4 @@ struct Constants
   static T epsilonRads() { return T(3.1415926535897932384626433832e-8); }
 };
 #endif
+

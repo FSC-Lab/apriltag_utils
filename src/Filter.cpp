@@ -15,11 +15,8 @@ void Filter::receivedata(const geometry_msgs::PoseStamped::ConstPtr &msg)
 {
     Eigen::Matrix<double, N_ob, 1> measurement;
 
-    measurement(0) = msg->pose.position.x;
-    measurement(1) = msg->pose.position.y;
-    measurement(2) = msg->pose.position.z; //compensate some offset
-    std::cout << measurement  << std::endl;
-    Eigen::Vector3d p_measure = measurement.block<3, 1>(0, 0);
+    Vec r_p_c(msg->pose.position);
+    measurement.block<3, 1>(0, 0) = r_p_c;
 
     // std::cout << measurement << std::endl; detect loss
     if (F_count > 10) //losr for a long time 10times
@@ -34,24 +31,24 @@ void Filter::receivedata(const geometry_msgs::PoseStamped::ConstPtr &msg)
     //detect
     else if (this->ini == 0)
     { // if not initilization
-        // set_initial_state(p_measure);
+        // set_initial_state(r_p_c);
         this->ini = 1;
         pub_flag = 1;
     }
-    else if (this->ini == 1 && p_measure.norm() != 0)
+    else if (this->ini == 1 && r_p_c.norm() != 0)
     {
-        position_data.push_back(std::make_pair(msg->header.stamp.toSec(), p_measure)); //record data to calculate velocity
+        position_data.push_back(std::make_pair(msg->header.stamp.toSec(), r_p_c)); //record data to calculate velocity
 
         if (sizeof(position_data) > 10)
         {
             Eigen::Vector3d Velocity;
-            double dt = position_data.back().first - position_data[position_data.size() - 2].first;
+            double dt = position_data.back().first - position_data.end()[-2].first;
             if (dt > 0)
-                Velocity = (position_data.back().second - position_data[position_data.size() - 2].second) / dt;
-            //std::cout << "time is " << dt << std::endl<<"v====isss   " << Velocity << std::endl << "posi is  " << position_data.back().second
-            //   << "posi old is  " << position_data[position_data.size()-2].second << std::endl;
+                Velocity = (position_data.back().second - position_data.end()[-2].second) / dt;
+
             measurement.block<3, 1>(3, 0) = Velocity;
         }
+        std::cout << "Measurement" << measurement << std::endl;
 
         loss = false;
         this->update(measurement);
@@ -83,9 +80,7 @@ void Filter::publishpose(const ros::Publisher &pub)
           pose_msg.pose.pose.orientation.y = q_relative.y();
           pose_msg.pose.pose.orientation.z = q_relative.z();
           pose_msg.pose.pose.orientation.w = q_relative.w();*/
-        pose_msg.twist.twist.linear.x = X(4);
-        pose_msg.twist.twist.linear.y = X(3);
-        pose_msg.twist.twist.linear.z = -X(5);
+        pose_msg.twist.twist.linear = Vec(X.block<3, 1>(3, 5)).toMsgsVector3();
 
         if (loss == 1)
             pose_msg.pose.covariance[1] = 1;
@@ -94,8 +89,21 @@ void Filter::publishpose(const ros::Publisher &pub)
     }
 }
 
+void Filter::compute_proc_Jacobian()
+{
+    double dt = 1.0f / 100;
+    F << 1, 0, 0, dt, 0, 0,
+        0, 1, 0, 0, dt, 0,
+        0, 0, 1, 0, 0, dt,
+        0, 0, 0, 1, 0, 0,
+        0, 0, 0, 0, 1, 0,
+        0, 0, 0, 0, 0, 1;
+}
+
 void Filter::predict()
 {
+    compute_proc_Jacobian();
+
     X_pre = F * X;                     // onestep predict state
     P_pre = F * P * F.transpose() + Q; //covariance predict
 
@@ -104,20 +112,20 @@ void Filter::predict()
     P = P_pre;
     pub_flag = 1;
 
-    std::cout << X  << std::endl;
+    std::cout << "Predicted state" << X.transpose() << std::endl;
+}
+
+void Filter::compute_obsv_Jacobian()
+{
+    H.setIdentity();
 }
 
 void Filter::update(Eigen::Matrix<double, N_ob, 1> &observe)
 {
+    compute_obsv_Jacobian();
     Z = observe;
     K = P_pre * H.transpose() * (H * P_pre * H.transpose() + R).inverse();
     X = X_pre + K * (Z - H * X_pre);
     P = (Eigen::MatrixXd::Identity(N_ob, N_ob) - K * H) * P_pre;
-}
-
-void Filter::matToConsole()
-{
-    std::cout << P << std::endl
-              << Q << std::endl
-              << R << std::endl;
+    std::cout << "Updated state" << X.transpose() << std::endl;
 }

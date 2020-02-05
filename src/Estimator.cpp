@@ -10,18 +10,13 @@ int main(int argc , char** argv)
     ros::init(argc, argv, "pose_filter");
     ros::start(); // ros inilization
 
-    Eigen::Matrix<double, 6, 6> P0, Q, R;
+    Eigen::Matrix<double, 6, 6> P0 = Eigen::MatrixXd::Zero(6,6);
+    Eigen::Matrix<double, 6, 6> Q = Eigen::MatrixXd::Zero(6,6);
+    Eigen::Matrix<double, 6, 6> R = Eigen::MatrixXd::Zero(6,6);
+
     P0.diagonal() << 0.01, 0.01, 0.01, 0.01, 0.01, 0.01;
     Q.diagonal() << 0.01, 0.01, 0.01, 0.01, 0.01, 0.01;
     R.diagonal() << 0.1, 0.1, 0.1, 0.05, 0.05, 0.05;
-
-    Eigen::Matrix<double, 6, 6> H;
-    H << 1, 0, 0, 0, 0, 0,
-         0, 1, 0, 0, 0, 0,
-         0, 0, 1, 0, 0, 0,
-         0, 0, 0, 1, 0, 0,
-         0, 0, 0, 0, 1, 0,
-         0, 0, 0, 0, 0, 1;
 
     Filter Estimator( P0, Q, R);
 
