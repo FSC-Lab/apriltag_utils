@@ -60,11 +60,12 @@ catkin_package(
 )
 
 include_directories(
+include
 ${PROJECT_SOURCE_DIR}
 ${apriltag_INCLUDE_DIRS}
 ${catkin_INCLUDE_DIRS}
-/usr/local/include/apriltag
 ${EIGEN3_INCLUDE_DIRS}
+/usr/local/include/apriltag
 )
 
 catkin_package(
@@ -86,7 +87,7 @@ catkin_install_python(PROGRAMS ${PYTHON_SCRIPTS}
 
 add_library(${PROJECT_NAME} SHARED
 ${apriltag_LIBRARIES}
-src/apriltag_detector.cpp
+src/detector_node.cpp
 )
 
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
@@ -110,17 +111,17 @@ ${catkin_LIBRARIES})
 ##############################################################################
 # Sources for apriltag detector
 ##############################################################################
-file(GLOB_RECURSE DETECTOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*detector.cpp)
+file(GLOB_RECURSE DETECTOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*detector_node.cpp src/Detector.cpp)
 
-add_executable(apriltag_detector ${DETECTOR_SOURCES})
-target_link_libraries(apriltag_detector 
+add_executable(detector ${DETECTOR_SOURCES})
+target_link_libraries(detector 
 ${PROJECT_NAME}
 ${catkin_LIBRARIES})
 
 ##############################################################################
 # Sources for Kalman Filter
 ##############################################################################
-file(GLOB_RECURSE ESTIMATOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*Estimator.cpp src/Filter.cpp)
+file(GLOB_RECURSE ESTIMATOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*estimator_node.cpp src/Filter.cpp)
 add_executable(estimator ${ESTIMATOR_SOURCES})
 
 target_link_libraries(estimator
