@@ -39,6 +39,8 @@ geometry_msgs
 nav_msgs
 )
 
+add_definitions(-DHAVE_ROS)
+
 find_package(Eigen3 REQUIRED)
 
 find_package(OpenCV 3.0 QUIET)

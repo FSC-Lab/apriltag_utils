@@ -10,9 +10,9 @@ int main(int argc , char** argv)
     ros::init(argc, argv, "pose_filter");
     ros::start(); // ros inilization
 
-    Eigen::Matrix<double, 6, 6> P0 = Eigen::MatrixXd::Zero(6,6);
-    Eigen::Matrix<double, 6, 6> Q = Eigen::MatrixXd::Zero(6,6);
-    Eigen::Matrix<double, 6, 6> R = Eigen::MatrixXd::Zero(6,6);
+    Eigen::Matrix<float, 6, 6> P0 = Eigen::MatrixXf::Zero(6,6);
+    Eigen::Matrix<float, 6, 6> Q = Eigen::MatrixXf::Zero(6,6);
+    Eigen::Matrix<float, 6, 6> R = Eigen::MatrixXf::Zero(6,6);
 
     P0.diagonal() << 0.01, 0.01, 0.01, 0.01, 0.01, 0.01;
     Q.diagonal() << 0.01, 0.01, 0.01, 0.01, 0.01, 0.01;

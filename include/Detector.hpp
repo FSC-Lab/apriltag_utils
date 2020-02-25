@@ -50,8 +50,8 @@ public:
     void get_pose();
     bool load_parameters(std::string filepath);
 
-    Tform T_p_c;
-    Tform T_iden;
+    Tformf T_p_c;
+    Tformf T_iden;
     std::string pipeline_;
     std::string family_;
 

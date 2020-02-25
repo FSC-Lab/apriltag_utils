@@ -3,9 +3,9 @@
 
 #include <iostream>
 #include <vector>
-#include "math/Tform.hpp"
-#include "math/Quat.hpp"
-#include "math/Vec.hpp"
+#include "eigen_ros/Tform.hpp"
+#include "eigen_ros/Quat.hpp"
+#include "eigen_ros/Vec.hpp"
 
 
 // Templates for N-d matrices / arrays only!
@@ -19,6 +19,9 @@ using VectorX = Vector<T, M>;
 template <int N>
 using VectorXd = VectorX<double, N>;
 
+template <int N>
+using VectorXf = VectorX<float, N>;
+
 // Template for N-d matrices
 template <class T, int M, int N>
 using Matrix = Eigen::Matrix<T, M, N>;
@@ -28,6 +31,9 @@ using MatrixX = Matrix<T, M, M>;
 
 template <int N>
 using MatrixXd = MatrixX<double, N>;
+
+template <int N>
+using MatrixXf = MatrixX<float, N>;
 
 template <class T>
 struct Constants

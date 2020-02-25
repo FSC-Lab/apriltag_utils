@@ -51,11 +51,13 @@ public:
 #ifdef HAVE_ROS
     // ctor from ROS geometry message point
     Vec(const geometry_msgs::Point &point) : Vector3(static_cast<Scalar>(point.x),
-                                                             static_cast<Scalar>(point.y),
-                                                             static_cast<Scalar>(point.z)){};
+                                                     static_cast<Scalar>(point.y),
+                                                     static_cast<Scalar>(point.z)){};
 
     // ctor from ROS geometry message vector3
-    Vec(const geometry_msgs::Vector3 &vector3) : Vector3(vector3.x, vector3.y, vector3.z){};
+    Vec(const geometry_msgs::Vector3 &vector3) : Vector3(static_cast<Scalar>(vector3.x),
+                                                         static_cast<Scalar>(vector3.y),
+                                                         static_cast<Scalar>(vector3.z)){};
     // conversion to ROS geometry message point
 
     geometry_msgs::Point toMsgsPoint(void)

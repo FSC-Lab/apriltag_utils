@@ -22,7 +22,7 @@ void FlagDetect(const std_msgs::String::ConstPtr &msg);
 void initros();
 bool Loss_Flag = 1;
 bool pub_flag = 0;
-std::vector<std::pair<double, Tform>> T_pk_vk;
+std::vector<std::pair<double, Tformd>> T_pk_vk;
 Eigen::Vector3d CalculateVelocityFromPose();
 nav_msgs::Odometry pose_msg;
 int count = 0;
@@ -35,8 +35,8 @@ void GetPayloadPose(const nav_msgs::Odometry::ConstPtr &payloadmsg, const nav_ms
 
     double payload_time;
 #if TFORM_USE
-    Tform T_p_i(payload_msg.pose.pose);
-    Tform T_v_i(uav_msg.pose.pose);
+    Tformd T_p_i(payload_msg.pose.pose);
+    Tformd T_v_i(uav_msg.pose.pose);
 
 #else
     //obtain payload state
@@ -60,12 +60,12 @@ void GetPayloadPose(const nav_msgs::Odometry::ConstPtr &payloadmsg, const nav_ms
 #endif
     //obtain relative pose
     payload_time = payload_msg.header.stamp.toSec();
-    Tform T_p_v = Tform(T_p_i * T_v_i.inverse());
+    Tformd T_p_v = Tformd(T_p_i * T_v_i.inverse());
     T_pk_vk.push_back(std::make_pair(payload_time, T_p_v));
 
     if (sizeof(T_pk_vk) > 10)
     {
-        Vec relative_velocity = CalculateVelocityFromPose();
+        Vecd relative_velocity = CalculateVelocityFromPose();
         pose_msg.header = payload_msg.header;
 
 #if TFORM_USE
