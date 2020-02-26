@@ -62,8 +62,7 @@ Detector::~Detector()
     cap.release();
 }
 
-bool Detector::init(apriltag_detection_info_t &pose_est_info,
-                    std::string family,
+bool Detector::init(std::string family,
                     double decimate,
                     double blur,
                     int threads,
@@ -77,7 +76,6 @@ bool Detector::init(apriltag_detection_info_t &pose_est_info,
     image_pub = it.advertise("RPi_camera_v2/image_raw", 1);
 
     sensor_msgs::ImagePtr msg;
-    info = &pose_est_info;
     family_ = family;
     if (family_ == "tag36h11")
     {
@@ -135,23 +133,32 @@ bool Detector::load_parameters(std::string filepath)
     if (!fs.isOpened())
     {
         std::cerr << "Failed to open CamMatrix" << std::endl;
-        exit(EXIT_FAILURE);
+        param_loaded = false;
+        return param_loaded;
     }
-    cv::Mat matrix;
-    cv::Mat coeff;
-    cv::Mat new_matrix; //matrix after undistort
     fs["camera_matrix"] >> matrix;
     fs["distortion_coefficients"] >> coeff;
-    std::cout << "Matrix" << matrix << std::endl;
-    std::cout << "Coeff" << coeff << std::endl;
-    return 0;
+    info->fx = matrix.at<double>(0);
+    info->fy = matrix.at<double>(4);
+    info->cx = matrix.at<double>(2);
+    info->cy = matrix.at<double>(5);
+    // Using printf here for pretty printing
+    printf("Loaded camera matrix values:\n fx = %.04f fy = %.04f cx = %.04f fy = %.04f\n",
+           info->fx, info->fy, info->cx, info->fy);
+    printf("Loaded Distortion coefficients:\n%.04f %.04f %.04f %.04f %.04f\n",
+           coeff.at<double>(0), coeff.at<double>(1), coeff.at<double>(2), coeff.at<double>(3), coeff.at<double>(4));
+    param_loaded = true;
+    return param_loaded;
 }
 
 void Detector::get_image(bool publish)
 {
     cap >> frame;
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
-    //   undistort(gray,un_gray,matrix,coeff,new_matrix);
+
+    if (param_loaded)
+        undistort(gray, un_gray, matrix, coeff, new_matrix);
+
     auto time_c = ros::Time::now();
     if (!frame.empty())
     {

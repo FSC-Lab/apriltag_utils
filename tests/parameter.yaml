@@ -1,18 +1,18 @@
 %YAML:1.0
-image_width: 640
-image_height: 480
-camera_name: usb_cam
+image_width: 1280
+image_height: 720
+camera_name: narrow_stereo
 camera_matrix: !!opencv-matrix
   rows: 3
   cols: 3
   dt: d
-  data: [489.4777069384356, 0, 308.8032768908899, 0, 488.1852660517832, 268.6371343845645, 0, 0, 1]
+  data: [1270.819761, 0, 648.322862, 0, 1271.507569, 362.266175, 0, 0, 1]
 distortion_model: plumb_bob
 distortion_coefficients: !!opencv-matrix
   rows: 1
   cols: 5
   dt: d
-  data: [0.03618971518001553, -0.08383321211248897, 0.004030107525985591, -0.004365030494665567, 0]
+  data: [0.176196, -0.271578, 0.0006349999999999999, 0.004212, 0]
 rectification_matrix: !!opencv-matrix
   rows: 3
   cols: 3
@@ -21,5 +21,5 @@ rectification_matrix: !!opencv-matrix
 projection_matrix: !!opencv-matrix
   rows: 3
   cols: 4
-  dt : d
-  data: [488.5268249511719, 0, 305.0990841060138, 0, 0, 489.0720520019531, 269.8452152812879, 0, 0, 0, 1, 0]
+  dt: d
+  data: [1307.197754, 0, 652.536116, 0, 0, 1312.85791, 362.629739, 0, 0, 0, 1, 0]

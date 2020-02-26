@@ -1,4 +1,5 @@
 #include <chrono>
+#include <exception>
 #include <iostream>
 #include <ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
@@ -38,8 +39,7 @@ public:
 
     ~Detector();
 
-    bool init(apriltag_detection_info_t &pose_est_info,
-              std::string family = "tag36h11",
+    bool init(std::string family = "tag36h11",
               double decimate = 2.0,
               double blur = 0,
               int threads = 1,
@@ -68,6 +68,11 @@ private:
     cv::VideoCapture cap;
 
     cv::Mat frame, gray, un_gray;
+
+    bool param_loaded;
+    cv::Mat matrix;
+    cv::Mat coeff;
+    cv::Mat new_matrix; //matrix after undistort
 
     apriltag_detection_info_t *info;
     apriltag_detection_t *det;

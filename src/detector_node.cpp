@@ -26,11 +26,19 @@ either expressed or implied, of the Regents of The University of Michigan.
 */
 
 #include "../include/Detector.hpp"
+#include <ros/package.h>
 
 int main(int argc, char *argv[])
 {
 
-    ros::init(argc, argv, "track_april_tag");
+    ros::init(argc, argv, "detector");
+
+    getopt_t *getopt = getopt_create();
+    std::string param_path;
+    getopt_add_string(getopt, 'p', "param_path", "", "Location of camera parameter file");
+    if (getopt_parse(getopt, argc, argv, 1))
+        std::string param_path = getopt_get_string(getopt, "param_path");
+
     // Initialize Camera through CSI
     int capture_width = 1280;
     int capture_height = 720;
@@ -43,16 +51,16 @@ int main(int argc, char *argv[])
     Detector dtr(capture_width, capture_height, display_width, display_height, framerate, flip_method);
     std::cout << "Using pipeline: \n\t" << dtr.pipeline_ << "\n";
 
-    // initialize apriltag pose estimation parameter
-    apriltag_detection_info_t info;
+    bool param_ok;
 
-    info.tagsize = 0.0578;
-    info.fx = 1272.31172;
-    info.fy = 1273.235019;
-    info.cx = 648.622369;
-    info.cy = 362.708529;
-    bool detector_ok = dtr.init(info);
-    if (detector_ok)
+    if (param_path.empty())
+        param_ok = dtr.load_parameters(ros::package::getPath("apriltag_utils") + "/tests/parameter.yaml");
+    else
+        param_ok = dtr.load_parameters(param_path);
+
+    bool detector_ok = dtr.init();
+
+    if (detector_ok && param_ok)
     {
         std::cout << "Detector initialized successfully" << std::endl;
     }
@@ -66,14 +74,15 @@ int main(int argc, char *argv[])
     while (ros::ok())
     {
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-        
+
         //ros camera publish
         bool publish = true;
         dtr.get_image(publish);
         dtr.get_pose();
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
         double ttrack = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
-        std::cout << "\r" << "Tracking time cost is " << ttrack << "ms \r";
+        std::cout << "\r"
+                  << "Tracking time cost is " << ttrack << "ms \r";
         ros::spinOnce();
         loop_rate.sleep();
     }
