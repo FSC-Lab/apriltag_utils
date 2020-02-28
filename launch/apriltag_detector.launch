@@ -1,9 +1,5 @@
 <launch>
     <!-- Launch recorder node -->
-<<<<<<< bfea2c194effb599c57d20574eeb505bbf1774c7
     <node pkg="apriltag_utils" type="detector" name="detector" output="screen">
-=======
-    <node pkg="apriltag_utils" type="apriltag_detector" name="apriltag_detector" output="screen">
->>>>>>> launch
-	</node>
+    </node>
 </launch>

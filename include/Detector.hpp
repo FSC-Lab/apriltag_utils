@@ -74,7 +74,7 @@ private:
     cv::Mat coeff;
     cv::Mat new_matrix; //matrix after undistort
 
-    apriltag_detection_info_t *info;
+    std::unique_ptr<apriltag_detection_info_t> info{new apriltag_detection_info_t};
     apriltag_detection_t *det;
     apriltag_family_t *tf = NULL;
     apriltag_detector_t *td;

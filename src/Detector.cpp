@@ -25,6 +25,7 @@ Detector::Detector(int capture_width, int capture_height, int display_width, int
 
 Detector::~Detector()
 {
+    std::cout << "Destroying detector class" << std::endl;
     apriltag_detector_destroy(td);
     if (family_ == "tag36h11")
     {
@@ -58,7 +59,7 @@ Detector::~Detector()
     {
         tagCustom48h12_destroy(tf);
     }
-
+    
     cap.release();
 }
 
@@ -136,15 +137,19 @@ bool Detector::load_parameters(std::string filepath)
         param_loaded = false;
         return param_loaded;
     }
+    
     fs["camera_matrix"] >> matrix;
     fs["distortion_coefficients"] >> coeff;
+
+    info->tagsize = 0.0578;
     info->fx = matrix.at<double>(0);
     info->fy = matrix.at<double>(4);
     info->cx = matrix.at<double>(2);
     info->cy = matrix.at<double>(5);
+
     // Using printf here for pretty printing
-    printf("Loaded camera matrix values:\n fx = %.04f fy = %.04f cx = %.04f fy = %.04f\n",
-           info->fx, info->fy, info->cx, info->fy);
+    printf("Loaded camera matrix values:\n fx = %.04f fy = %.04f cx = %.04f cy = %.04f\n",
+           info->fx, info->fy, info->cx, info->cy);
     printf("Loaded Distortion coefficients:\n%.04f %.04f %.04f %.04f %.04f\n",
            coeff.at<double>(0), coeff.at<double>(1), coeff.at<double>(2), coeff.at<double>(3), coeff.at<double>(4));
     param_loaded = true;
@@ -189,9 +194,9 @@ void Detector::get_pose()
     {
         zarray_get(detections, i, &det);
 
-        info->det = det;
+        info->det = det.get();
         apriltag_pose_t pose;
-        estimate_tag_pose(info, &pose);
+        estimate_tag_pose(info.get(), &pose);
 
         T_p_c = Tformf(pose);
         pose_msg.header.stamp = time_c;
