@@ -194,13 +194,19 @@ void Detector::get_pose()
     {
         zarray_get(detections, i, &det);
 
-        info->det = det.get();
+        info->det = det;
         apriltag_pose_t pose;
         estimate_tag_pose(info.get(), &pose);
 
         T_p_c = Tformf(pose);
+        Tformf T_c_v;
+        T_c_v <<    0, 1, 0, 0,
+                    1, 0, 0, -0.05, 
+                    0, 0, -1, 0.05,
+                    0, 0, 0, 1;
+
         pose_msg.header.stamp = time_c;
-        pose_msg.pose = T_p_c.toMsgsPose();
+        pose_msg.pose = Tformf(T_c_v*T_p_c).toMsgsPose();
         pose_pub.publish(pose_msg);
     }
     apriltag_detections_destroy(detections);

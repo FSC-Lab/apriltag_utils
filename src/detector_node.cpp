@@ -26,18 +26,43 @@ either expressed or implied, of the Regents of The University of Michigan.
 */
 
 #include "../include/Detector.hpp"
+#include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 #include <ros/package.h>
+
+namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 
 int main(int argc, char *argv[])
 {
 
     ros::init(argc, argv, "detector");
 
-    getopt_t *getopt = getopt_create();
-    std::string param_path;
-    getopt_add_string(getopt, 'p', "param_path", "", "Location of camera parameter file");
-    if (getopt_parse(getopt, argc, argv, 1))
-        std::string param_path = getopt_get_string(getopt, "param_path");
+    po::options_description desc("Allowed options");
+    desc.add_options()("help", "produce help message")("param_path", po::value<std::string>(), "Location of camera parameter file")("publish_images", po::value<bool>(), "Publish images as a ROS topic");
+
+    po::variables_map vm;
+
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+    if (vm.count("help"))
+    {
+        std::cout << desc << "\n";
+        return 1;
+    }
+    std::string param_path = ros::package::getPath("apriltag_utils") + "/tests/parameter.yaml";
+    if (vm.count("param_path"))
+    {
+        param_path = fs::absolute(fs::path(vm["param_path"].as<std::string>())).generic_string();
+    }
+
+    std::cout << "Loading camera parameters from " << param_path << "\n";
+
+    bool publish = true;
+    if (vm.count("publish_images"))
+    {
+        publish = vm["publish_images"].as<bool>();
+    }
 
     // Initialize Camera through CSI
     int capture_width = 1280;
@@ -51,12 +76,7 @@ int main(int argc, char *argv[])
     Detector dtr(capture_width, capture_height, display_width, display_height, framerate, flip_method);
     std::cout << "Using pipeline: \n\t" << dtr.pipeline_ << "\n";
 
-    bool param_ok;
-
-    if (param_path.empty())
-        param_ok = dtr.load_parameters(ros::package::getPath("apriltag_utils") + "/tests/parameter.yaml");
-    else
-        param_ok = dtr.load_parameters(param_path);
+    bool param_ok = dtr.load_parameters(param_path);
 
     bool detector_ok = dtr.init();
 
@@ -73,13 +93,11 @@ int main(int argc, char *argv[])
 
     while (ros::ok())
     {
-        std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+        auto t1 = std::chrono::steady_clock::now();
 
-        //ros camera publish
-        bool publish = true;
         dtr.get_image(publish);
         dtr.get_pose();
-        std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+        auto t2 = std::chrono::steady_clock::now();
         double ttrack = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();
         std::cout << "\r"
                   << "Tracking time cost is " << ttrack << "ms \r";
