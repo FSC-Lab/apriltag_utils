@@ -1,3 +1,8 @@
+# Don't commit tests often of a impromptu nature
+./tests/*.cpp
+./tests/*.hpp
+.vscode/*
+
 devel/
 logs/
 build/
