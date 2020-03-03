@@ -90,12 +90,12 @@ int main(int argc, char *argv[])
         return 1;
     }
     ros::Rate loop_rate(30);
-
+    bool undistort = false;
     while (ros::ok())
     {
         auto t1 = std::chrono::steady_clock::now();
 
-        dtr.get_image(publish);
+        dtr.get_image(publish, undistort);
         dtr.get_pose();
         auto t2 = std::chrono::steady_clock::now();
         double ttrack = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1).count();

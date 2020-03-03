@@ -7,8 +7,8 @@
 #include <sensor_msgs/Image.h>
 #include <geometry_msgs/PoseStamped.h>
 
-#include "opencv2/videoio.hpp"
-#include "opencv2/opencv.hpp"
+#include <opencv2/videoio.hpp>
+#include <opencv2/opencv.hpp>
 #include "common.hpp"
 #include "unistd.h"
 
@@ -46,7 +46,7 @@ public:
               bool debug = false,
               bool refine_edges = true);
 
-    void get_image(bool publish);
+    void get_image(bool publish, bool apply_undistort);
     void get_pose();
     bool load_parameters(std::string filepath);
 
@@ -74,12 +74,11 @@ private:
     cv::Mat coeff;
     cv::Mat new_matrix; //matrix after undistort
 
-    std::unique_ptr<apriltag_detection_info_t> info{new apriltag_detection_info_t};
-    apriltag_detection_t *det;
-    apriltag_family_t *tf = NULL;
-    apriltag_detector_t *td;
+    std::unique_ptr<apriltag_detection_info_t> info_{new apriltag_detection_info_t};
+    apriltag_detection_t *det_;
+    apriltag_family_t *tf_ = NULL;
+    apriltag_detector_t *td_;
 
     ros::Publisher pose_pub;
     image_transport::Publisher image_pub;
-    sensor_msgs::ImagePtr msg;
 };

@@ -26,38 +26,38 @@ Detector::Detector(int capture_width, int capture_height, int display_width, int
 Detector::~Detector()
 {
     std::cout << "Destroying detector class" << std::endl;
-    apriltag_detector_destroy(td);
+    apriltag_detector_destroy(td_);
     if (family_ == "tag36h11")
     {
-        tag36h11_destroy(tf);
+        tag36h11_destroy(tf_);
     }
     else if (family_ == "tag25h9")
     {
-        tag25h9_destroy(tf);
+        tag25h9_destroy(tf_);
     }
     else if (family_ == "tag16h5")
     {
-        tag16h5_destroy(tf);
+        tag16h5_destroy(tf_);
     }
     else if (family_ == "tagCircle21h7")
     {
-        tagCircle21h7_destroy(tf);
+        tagCircle21h7_destroy(tf_);
     }
     else if (family_ == "tagCircle49h12")
     {
-        tagCircle49h12_destroy(tf);
+        tagCircle49h12_destroy(tf_);
     }
     else if (family_ == "tagStandard41h12")
     {
-        tagStandard41h12_destroy(tf);
+        tagStandard41h12_destroy(tf_);
     }
     else if (family_ == "tagStandard52h13")
     {
-        tagStandard52h13_destroy(tf);
+        tagStandard52h13_destroy(tf_);
     }
     else if (family_ == "tagCustom48h12")
     {
-        tagCustom48h12_destroy(tf);
+        tagCustom48h12_destroy(tf_);
     }
     
     cap.release();
@@ -76,39 +76,38 @@ bool Detector::init(std::string family,
     image_transport::ImageTransport it(nh);
     image_pub = it.advertise("RPi_camera_v2/image_raw", 1);
 
-    sensor_msgs::ImagePtr msg;
     family_ = family;
     if (family_ == "tag36h11")
     {
-        tf = tag36h11_create();
+        tf_ = tag36h11_create();
     }
     else if (family_ == "tag25h9")
     {
-        tf = tag25h9_create();
+        tf_ = tag25h9_create();
     }
     else if (family_ == "tag16h5")
     {
-        tf = tag16h5_create();
+        tf_ = tag16h5_create();
     }
     else if (family_ == "tagCircle21h7")
     {
-        tf = tagCircle21h7_create();
+        tf_ = tagCircle21h7_create();
     }
     else if (family_ == "tagCircle49h12")
     {
-        tf = tagCircle49h12_create();
+        tf_ = tagCircle49h12_create();
     }
     else if (family_ == "tagStandard41h12")
     {
-        tf = tagStandard41h12_create();
+        tf_ = tagStandard41h12_create();
     }
     else if (family_ == "tagStandard52h13")
     {
-        tf = tagStandard52h13_create();
+        tf_ = tagStandard52h13_create();
     }
     else if (family_ == "tagCustom48h12")
     {
-        tf = tagCustom48h12_create();
+        tf_ = tagCustom48h12_create();
     }
     else
     {
@@ -116,13 +115,13 @@ bool Detector::init(std::string family,
         return false;
     }
 
-    td = apriltag_detector_create();
-    apriltag_detector_add_family(td, tf);
-    td->quad_decimate = decimate;
-    td->quad_sigma = blur;
-    td->nthreads = threads;
-    td->debug = debug;
-    td->refine_edges = refine_edges;
+    td_ = apriltag_detector_create();
+    apriltag_detector_add_family(td_, tf_);
+    td_->quad_decimate = decimate;
+    td_->quad_sigma = blur;
+    td_->nthreads = threads;
+    td_->debug = debug;
+    td_->refine_edges = refine_edges;
 
     ros::Time::waitForValid();
     return true;
@@ -141,33 +140,33 @@ bool Detector::load_parameters(std::string filepath)
     fs["camera_matrix"] >> matrix;
     fs["distortion_coefficients"] >> coeff;
 
-    info->tagsize = 0.0578;
-    info->fx = matrix.at<double>(0);
-    info->fy = matrix.at<double>(4);
-    info->cx = matrix.at<double>(2);
-    info->cy = matrix.at<double>(5);
+    info_->tagsize = 0.0578;
+    info_->fx = matrix.at<double>(0);
+    info_->fy = matrix.at<double>(4);
+    info_->cx = matrix.at<double>(2);
+    info_->cy = matrix.at<double>(5);
 
     // Using printf here for pretty printing
     printf("Loaded camera matrix values:\n fx = %.04f fy = %.04f cx = %.04f cy = %.04f\n",
-           info->fx, info->fy, info->cx, info->cy);
+           info_->fx, info_->fy, info_->cx, info_->cy);
     printf("Loaded Distortion coefficients:\n%.04f %.04f %.04f %.04f %.04f\n",
            coeff.at<double>(0), coeff.at<double>(1), coeff.at<double>(2), coeff.at<double>(3), coeff.at<double>(4));
     param_loaded = true;
     return param_loaded;
 }
 
-void Detector::get_image(bool publish)
+void Detector::get_image(bool publish, bool apply_undistort)
 {
     cap >> frame;
     cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
-    if (param_loaded)
+    if (param_loaded && apply_undistort)
         undistort(gray, un_gray, matrix, coeff, new_matrix);
 
     auto time_c = ros::Time::now();
     if (!frame.empty())
     {
-        msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", gray).toImageMsg();
+        auto msg = cv_bridge::CvImage(std_msgs::Header(), "mono8", gray).toImageMsg();
         msg->header.stamp = time_c;
         if (publish)
             image_pub.publish(msg);
@@ -181,7 +180,7 @@ void Detector::get_pose()
                      .stride = gray.cols,
                      .buf = gray.data};
 
-    auto detections = apriltag_detector_detect(td, &im);
+    auto detections = apriltag_detector_detect(td_, &im);
     auto time_c = ros::Time::now();
 
     if (zarray_size(detections) == 0)
@@ -192,11 +191,11 @@ void Detector::get_pose()
     }
     for (int i = 0; i < zarray_size(detections); i++)
     {
-        zarray_get(detections, i, &det);
+        zarray_get(detections, i, &det_);
 
-        info->det = det;
+        info_->det = det_;
         apriltag_pose_t pose;
-        estimate_tag_pose(info.get(), &pose);
+        estimate_tag_pose(info_.get(), &pose);
 
         T_p_c = Tformf(pose);
         Tformf T_c_v;
