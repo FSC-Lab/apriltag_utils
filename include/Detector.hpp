@@ -81,4 +81,5 @@ private:
 
     ros::Publisher pose_pub;
     image_transport::Publisher image_pub;
+    Tformf T_c_v;
 };

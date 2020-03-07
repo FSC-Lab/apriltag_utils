@@ -59,7 +59,7 @@ Detector::~Detector()
     {
         tagCustom48h12_destroy(tf_);
     }
-    
+
     cap.release();
 }
 
@@ -114,6 +114,11 @@ bool Detector::init(std::string family,
         std::cout << "Unrecognized tag family name: " << family_;
         return false;
     }
+    std::vector<float> T_cam;
+    nh.getParam("/Transformation_camera_IMU", T_cam);
+    T_c_v = Eigen::Matrix4f(T_cam.data()).transpose();
+    // T_c_v.block<3, 1>(0, 3) = Eigen::Map<Eigen::Matrix<float, 3, 1>>(r_v_c_ptr);
+    std::cout << T_c_v << "\n";
 
     td_ = apriltag_detector_create();
     apriltag_detector_add_family(td_, tf_);
@@ -136,7 +141,7 @@ bool Detector::load_parameters(std::string filepath)
         param_loaded = false;
         return param_loaded;
     }
-    
+
     fs["camera_matrix"] >> matrix;
     fs["distortion_coefficients"] >> coeff;
 
@@ -199,13 +204,13 @@ void Detector::get_pose()
 
         T_p_c = Tformf(pose);
         Tformf T_c_v;
-        T_c_v <<    0, 1, 0, 0,
-                    1, 0, 0, -0.05, 
-                    0, 0, -1, 0.05,
-                    0, 0, 0, 1;
+        T_c_v << 0, 1, 0, 0,
+            1, 0, 0, -0.05,
+            0, 0, -1, 0.05,
+            0, 0, 0, 1;
 
         pose_msg.header.stamp = time_c;
-        pose_msg.pose = Tformf(T_c_v*T_p_c).toMsgsPose();
+        pose_msg.pose = Tformf(T_c_v * T_p_c).toMsgsPose();
         pose_pub.publish(pose_msg);
     }
     apriltag_detections_destroy(detections);
