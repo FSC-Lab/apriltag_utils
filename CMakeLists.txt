@@ -35,6 +35,7 @@ rospy
 sensor_msgs
 cv_bridge
 image_transport
+camera_info_manager
 geometry_msgs
 nav_msgs
 )
@@ -79,6 +80,7 @@ std_msgs
 geometry_msgs
 cv_bridge
 image_transport
+camera_info_manager
 nav_msgs
 )
 
@@ -89,7 +91,7 @@ catkin_install_python(PROGRAMS ${PYTHON_SCRIPTS}
 
 add_library(${PROJECT_NAME} SHARED
 ${apriltag_LIBRARIES}
-src/detector_node.cpp
+src/camera_node.cpp
 )
 
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
@@ -101,43 +103,9 @@ ${EIGEN3_LIBS}
 /usr/local/lib/libapriltag.so.3.1.0
 )
 
-##############################################################################
-# Sources for apriltag emulator
-##############################################################################
-file(GLOB_RECURSE EMULATOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*emulator.cpp)
-add_executable(apriltag_emulator ${EMULATOR_SOURCES})
-target_link_libraries(apriltag_emulator
+file(GLOB_RECURSE CAMERA_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*camera_node.cpp src/Detector.cpp)
+
+add_executable(camera ${CAMERA_SOURCES})
+target_link_libraries(camera 
 ${PROJECT_NAME}
 ${catkin_LIBRARIES})
-
-##############################################################################
-# Sources for apriltag detector
-##############################################################################
-file(GLOB_RECURSE DETECTOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*detector_node.cpp src/Detector.cpp)
-
-add_executable(detector ${DETECTOR_SOURCES})
-target_link_libraries(detector 
-${PROJECT_NAME}
-${catkin_LIBRARIES})
-
-##############################################################################
-# Sources for Kalman Filter
-##############################################################################
-file(GLOB_RECURSE ESTIMATOR_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS src/*estimator_node.cpp src/Filter.cpp)
-add_executable(estimator ${ESTIMATOR_SOURCES})
-
-target_link_libraries(estimator
-${PROJECT_NAME}
-${catkin_LIBRARIES}
-${apriltag_LIBRARIES}
-${OpenCV_LIBS}
-${EIGEN3_LIBS}
-)
-
-##############################################################################
-# Source for tests; Attempts to glob for files that appear to be tests
-##############################################################################
-file(GLOB_RECURSE TESTS_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS tests/*test*.cpp)
-if (TESTS_SOURCES)
-add_executable(custom_test ${TESTS_SOURCES})
-endif()
